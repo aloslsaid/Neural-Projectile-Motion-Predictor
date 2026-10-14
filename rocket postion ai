@@ -1,0 +1,152 @@
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+
+N = 100_000
+g = 9.81
+
+# Random inputs for a classroom projectile simulation
+x0 = np.random.uniform(0, 10, N)
+y0 = np.random.uniform(10, 100, N)
+v0 = np.random.uniform(5, 40, N)
+angle = np.random.uniform(20, 80, N)
+t = np.random.uniform(0, 3, N)
+
+# Convert degrees to radians
+radians = np.radians(angle)
+
+# Calculate horizontal and vertical velocity components
+vx = v0 * np.cos(radians)
+vy = v0 * np.sin(radians)
+
+# Calculate position at the selected time
+x = x0 + vx * t
+y = y0 + vy * t - 0.5 * g * t**2
+
+# Keep positions above ground for this dataset
+data = pd.DataFrame({
+    "x0": x0,
+    "y0": y0,
+    "initial_speed": v0,
+    "angle_degrees": angle,
+    "elapsed_time": t,
+    "x_position": x,
+    "y_position": y
+})
+
+data = data[data["y_position"] >= 0].reset_index(drop=True)
+
+# Save the dataset
+data.to_csv("projectile_dataset.csv", index=False)
+
+print("Dataset saved!")
+print("Rows:", len(data))
+print(data.head())
+
+
+import pandas as pd
+import numpy as np
+import torch
+import torch.nn as nn
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+df = pd.read_csv("projectile.csv")
+
+feature_columns = [
+    "x0",
+    "y0",
+    "initial_speed",
+    "angle_degrees",
+    "elapsed_time"
+]
+
+target_columns = [
+    "x_position",
+    "y_position"
+]
+
+X = df[feature_columns].to_numpy(dtype=np.float32)
+y = df[target_columns].to_numpy(dtype=np.float32)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_train = scaler_X.fit_transform(X_train).astype(np.float32)
+
+X_test = scaler_X.transform(X_test).astype(np.float32)
+
+y_train = scaler_y.fit_transform(y_train).astype(np.float32)
+y_test_scaled = scaler_y.transform(y_test).astype(np.float32)
+
+X_train = torch.tensor(X_train, dtype=torch.float32)
+X_test = torch.tensor(X_test, dtype=torch.float32)
+y_train = torch.tensor(y_train, dtype=torch.float32)
+y_test_tensor = torch.tensor(y_test_scaled, dtype=torch.float32)
+
+
+class NeuralNetwork(nn.Module):
+    def init(self, input_size):
+        super().init()
+
+        self.network = nn.Sequential(
+            nn.Linear(input_size, 216),
+            nn.ReLU(),
+            nn.Linear(216, 108),
+            nn.ReLU(),
+            nn.Linear(108, 2)
+        )
+
+    def forward(self, x):
+        return self.network(x)
+
+
+model = NeuralNetwork(X_train.shape[1])
+
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(
+    model.parameters(),
+    lr=0.001
+)
+
+epochs = 3500
+
+for epoch in range(epochs):
+    model.train()
+
+    predictions = model(X_train)
+    loss = criterion(predictions, y_train)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if (epoch + 1) % 50 == 0:
+        print(
+            f"Epoch [{epoch + 1}/{epochs}] "
+            f"Loss: {loss.item():.6f}"
+        )
+
+model.eval()
+
+with torch.no_grad():
+    predictions_scaled = model(X_test).numpy()
+
+predictions = scaler_y.inverse_transform(predictions_scaled)
+actual = scaler_y.inverse_transform(y_test_tensor.numpy())
+
+mae = mean_absolute_error(actual, predictions)
+rmse = np.sqrt(mean_squared_error(actual, predictions))
+
+print(f"Test MAE: {mae:.6f}")
+print(f"Test RMSE: {rmse:.6f}")
