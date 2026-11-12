@@ -1,17 +1,43 @@
 # Neural Projectile Motion Predictor
 
-An educational project exploring a PyTorch feedforward neural network that predicts a projectile's horizontal and vertical position from initial conditions and elapsed time. The repository contains a CSV dataset and a folder named `rocket postion ai`; inspect that folder for the actual training code and its own requirements before running it.
+A PyTorch regression experiment that predicts horizontal and vertical projectile position from initial position, launch speed, launch angle and elapsed time.
 
-## Getting started
+## Inputs and outputs
 
-1. Clone or download the repository.
-2. Inspect `rocket postion ai` and the CSV header to confirm the expected inputs and entry point.
-3. Create a Python virtual environment.
-4. Install the dependencies required by the source code. There is currently no root `requirements.txt`, so do not assume a package list.
-5. Run the training/evaluation script using the command documented in that folder, if provided.
+Inputs: `x0`, `y0`, `initial_speed`, `angle_degrees`, `elapsed_time`.
 
-The project overview describes synthetic or prepared projectile-motion data, feature scaling, model training, and MAE/RMSE evaluation. Confirm from the code whether the checked-in `projectile.csv` is used or data is generated at runtime. The reported RMSE in older notes should not be treated as independently reproduced by this guide.
+Targets: `x_position`, `y_position`.
 
-## Testing and interpretation
+The maintained training entry point reads the checked-in `projectile.csv`, validates its schema, standardizes features and targets, trains a feed-forward neural network, selects the best checkpoint using validation loss, and evaluates once on a held-out test set.
 
-No root test suite or verified test command is currently available. Validate input units and angle conventions, use a held-out test set, and compare predictions with the physics equations used to generate the data. This is a learning project, not a simulator or safety-critical trajectory planner.
+## Setup
+
+Python 3.10+:
+
+```bash
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python train.py
+```
+
+## Outputs
+
+Generated under `artifacts/`:
+
+- `projectile_model.pt`: trained model and column metadata.
+- `scalers.joblib`: fitted input and target scalers.
+- `test_predictions.csv`: actual and predicted test coordinates.
+- Console metrics: MAE, RMSE and R².
+
+The dataset is based on idealized projectile motion. It does not represent drag, wind, spin, variable gravity or real-world launch uncertainty. Check units and generation assumptions before interpreting results.
+
+## Reproducibility and safety
+
+A fixed random seed is used. Do not use this educational model for weapon guidance, safety-critical trajectory planning or real-world targeting.
+
+## License
+
+No license is declared. All rights reserved unless the repository owner adds an explicit license.
