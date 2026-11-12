@@ -96,8 +96,8 @@ y_test_tensor = torch.tensor(y_test_scaled, dtype=torch.float32)
 
 
 class NeuralNetwork(nn.Module):
-    def init(self, input_size):
-        super().init()
+    def __init__(self, input_size):
+        super().__init__()
 
         self.network = nn.Sequential(
             nn.Linear(input_size, 216),
