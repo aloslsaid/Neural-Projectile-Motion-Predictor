@@ -1,17 +1,38 @@
 # Neural Projectile Motion Predictor
 
-An educational project exploring a PyTorch feedforward neural network that predicts a projectile's horizontal and vertical position from initial conditions and elapsed time. The repository contains a CSV dataset and a folder named `rocket postion ai`; inspect that folder for the actual training code and its own requirements before running it.
+A PyTorch feed-forward regression experiment that predicts horizontal and vertical projectile position from initial conditions and elapsed time.
 
-## Getting started
+## Repository files
+- `rocket postion ai`: Python script containing a synthetic-data generator followed by model training/evaluation (extensionless filename in the current repository).
+- `projectile.csv`: dataset consumed by the training section.
+- `requirements.txt`: Python dependencies.
 
-1. Clone or download the repository.
-2. Inspect `rocket postion ai` and the CSV header to confirm the expected inputs and entry point.
-3. Create a Python virtual environment.
-4. Install the dependencies required by the source code. There is currently no root `requirements.txt`, so do not assume a package list.
-5. Run the training/evaluation script using the command documented in that folder, if provided.
+## Setup
 
-The project overview describes synthetic or prepared projectile-motion data, feature scaling, model training, and MAE/RMSE evaluation. Confirm from the code whether the checked-in `projectile.csv` is used or data is generated at runtime. The reported RMSE in older notes should not be treated as independently reproduced by this guide.
+Python 3.10+ is recommended.
 
-## Testing and interpretation
+Windows PowerShell:
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python "rocket postion ai"
+```
 
-No root test suite or verified test command is currently available. Validate input units and angle conventions, use a held-out test set, and compare predictions with the physics equations used to generate the data. This is a learning project, not a simulator or safety-critical trajectory planner.
+macOS/Linux:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python "rocket postion ai"
+```
+
+## Workflow and data
+The first section generates a synthetic projectile dataset and writes `projectile_dataset.csv`. The training section reads the checked-in `projectile.csv`; it does not automatically train on the generated file. The features are initial x/y position, launch speed, launch angle in degrees, and elapsed time. The targets are horizontal and vertical positions.
+
+The model uses train/test splitting and fits input and target scalers on the training split. It reports MAE and RMSE after converting predictions back to the original position units. Results should be reproduced on the current dataset before quoting a performance figure.
+
+## Assumptions and limitations
+The generator uses ideal projectile motion with constant gravity and no air resistance, wind, spin, or changing mass. The generated values are synthetic and do not represent real-world ballistic performance. Check units and angle conventions before changing the dataset. This project is for educational simulation only, not trajectory planning or safety-critical use.
