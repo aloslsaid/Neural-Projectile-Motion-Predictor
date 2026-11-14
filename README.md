@@ -1,17 +1,57 @@
 # Neural Projectile Motion Predictor
 
-An educational project exploring a PyTorch feedforward neural network that predicts a projectile's horizontal and vertical position from initial conditions and elapsed time. The repository contains a CSV dataset and a folder named `rocket postion ai`; inspect that folder for the actual training code and its own requirements before running it.
+> A PyTorch regression experiment that learns to predict the horizontal and vertical position of a projectile from its initial conditions and elapsed time.
 
-## Getting started
+## Overview
+This project explores how a neural network can approximate projectile-motion equations from generated or recorded tabular examples. It accepts initial position, launch speed, launch angle, and elapsed time, then predicts the projectile's X and Y coordinates.
 
-1. Clone or download the repository.
-2. Inspect `rocket postion ai` and the CSV header to confirm the expected inputs and entry point.
-3. Create a Python virtual environment.
-4. Install the dependencies required by the source code. There is currently no root `requirements.txt`, so do not assume a package list.
-5. Run the training/evaluation script using the command documented in that folder, if provided.
+## Input and output features
+Inputs:
+- `x0` — initial horizontal position.
+- `y0` — initial vertical position.
+- `initial_speed` — launch speed.
+- `angle_degrees` — launch angle.
+- `elapsed_time` — time since launch.
 
-The project overview describes synthetic or prepared projectile-motion data, feature scaling, model training, and MAE/RMSE evaluation. Confirm from the code whether the checked-in `projectile.csv` is used or data is generated at runtime. The reported RMSE in older notes should not be treated as independently reproduced by this guide.
+Targets:
+- `x_position` — horizontal position.
+- `y_position` — vertical position.
 
-## Testing and interpretation
+## Dataset generation
+The repository includes a script that generates 100,000 simulated examples using randomized initial conditions and the standard constant-gravity equations:
+- Horizontal motion: constant horizontal velocity.
+- Vertical motion: initial vertical velocity with gravitational acceleration.
+- Samples below ground level are filtered out.
 
-No root test suite or verified test command is currently available. Validate input units and angle conventions, use a held-out test set, and compare predictions with the physics equations used to generate the data. This is a learning project, not a simulator or safety-critical trajectory planner.
+The training script reads `projectile.csv`, scales both input and output arrays, and trains a feed-forward PyTorch network with two predicted coordinates.
+
+## Model and evaluation
+The intended architecture contains two hidden layers (216 and 108 units) with ReLU activations and a two-value output. Training uses Adam and mean-squared error. The script reports MAE and RMSE after converting predictions back to the original coordinate scale.
+
+## Installation
+Python 3.10+ is recommended:
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install numpy pandas scikit-learn torch
+```
+
+## Run
+The training script is named `rocket postion ai`:
+```bash
+python "rocket postion ai"
+```
+Run it from the repository root. It expects the file `projectile.csv`. The generation section in the script writes `projectile_dataset.csv`, so ensure the filename used for training matches the dataset you intend to train on.
+
+## Current source note
+The checked-in model class currently uses `init` instead of Python's required `__init__`; the model construction therefore needs a source correction before the training script can run successfully. This documentation-only update does not alter that code.
+
+## Scientific scope
+This is a simplified idealized projectile model. It does not include air resistance, wind, spin, changing gravity, or collisions. Its predictions approximate the generated data distribution and should not be treated as a real-world ballistic or engineering calculator.
+
+## Skills demonstrated
+Physics-informed synthetic data · PyTorch · Neural-network regression · Feature scaling · Simulation · MAE · RMSE
